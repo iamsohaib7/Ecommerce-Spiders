@@ -1,0 +1,16 @@
+from src.spiders.spiders import AlfatahSpider
+from src.spiders.utils.extra import URLParser
+
+
+class Spider(URLParser):
+    def __init__(self, url):
+        self.SPIDERS = {"alfatah": AlfatahSpider}
+        self.url = url
+        self.domain = self.extract_domain(url)
+
+    def crawl(self):
+        if spider := self.SPIDERS.get(self.domain):
+            curr = spider(self.url)
+            print(curr.fetch_all_urls())
+        else:
+            raise ModuleNotFoundError(f"{self.domain} is not Implemented")

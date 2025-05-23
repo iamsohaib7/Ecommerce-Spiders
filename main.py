@@ -1,5 +1,10 @@
+from src.crawler import Spider
+
+
 def main():
-    print("Hello from ecommerce-spider!")
+    url = input("Enter the Url: ")
+    spider = Spider(url)
+    spider.crawl()
 
 
 if __name__ == "__main__":
