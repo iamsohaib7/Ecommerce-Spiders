@@ -1,6 +1,10 @@
 from playwright.sync_api import sync_playwright
 from typing import Optional
-from src.spiders.utils.extra import DynamicPageInfiniteScroll, URLParser
+from src.spiders.utils.extra import (
+    DynamicPageInfiniteScroll,
+    URLParser,
+    save_data_to_file,
+)
 import curl_cffi
 import asyncio
 from parsel import Selector
@@ -59,8 +63,8 @@ class _StaticPageSpider(URLParser):
 
     def crawl(self):
         product_urls = self.__fetch_all_urls()
-        parsed_data = asyncio.run(self.__fetch_mutiple(product_urls[:1]))
-        
+        parsed_data = asyncio.run(self.__fetch_mutiple(product_urls))
+        save_data_to_file(parsed_data)
 
 
 class AlfatahSpider(_StaticPageSpider):
