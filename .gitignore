@@ -10,3 +10,6 @@ wheels/
 .venv
 
 *.lock
+
+#ignore output data
+output/

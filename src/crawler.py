@@ -11,6 +11,6 @@ class Spider(URLParser):
     def crawl(self):
         if spider := self.SPIDERS.get(self.domain):
             curr_spider = spider(self.url)
-            print(curr_spider.crawl())
+            curr_spider.crawl()
         else:
             raise ModuleNotFoundError(f"{self.domain} is not Implemented")

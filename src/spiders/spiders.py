@@ -85,7 +85,8 @@ class AlfatahSpider(_StaticPageSpider):
         description = list()
         for li in selector.css("#tab-description ul li"):
             description.append("".join(map(str.strip, li.css("::text").getall())))
-
+        if not description:
+            description.append(selector.css("#tab-description p::text").get())
         additional_info = list()
         for tr in selector.css("#tab-additional_information table tr"):
             additional_info.append(" ".join(map(str.strip, tr.css("::text").getall())))

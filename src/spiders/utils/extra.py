@@ -37,9 +37,11 @@ def save_data_to_file(data):
     need_header = not (
         os.path.exists(scrapped_data) and os.path.getsize(scrapped_data) > 0
     )
-    with open(scrapped_data, mode="a", newline="") as f:
+    with open(scrapped_data, mode="a", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         if need_header:
             writer.writerow(data[0].keys())
         for item in data:
+            if not isinstance(item, dict):
+                continue
             writer.writerow(item.values())
