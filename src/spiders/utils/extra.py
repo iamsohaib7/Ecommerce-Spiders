@@ -37,7 +37,7 @@ def save_data_to_file(data):
     need_header = not (
         os.path.exists(scrapped_data) and os.path.getsize(scrapped_data) > 0
     )
-    file_header = ("title", "additional_info", "description", "price", "domain", "url")
+    file_header = ("title", "additional_info", "description", "price", "domain", "url", "image_url")
 
     with open(scrapped_data, mode="a", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=file_header)

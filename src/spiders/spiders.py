@@ -82,6 +82,7 @@ class AlfatahSpider(_StaticPageSpider):
         selector = Selector(text=content)
         title = selector.css("h1.product_title::text").get()
         price = selector.css("div.summary p.price bdi::text").get()
+        img_url = selector.css("span.nickx-popup::attr(href)").extract_first()
         description = list()
         for li in selector.css("#tab-description ul li"):
             description.append("".join(map(str.strip, li.css("::text").getall())))
@@ -95,4 +96,5 @@ class AlfatahSpider(_StaticPageSpider):
             "additional_info": "\n".join(additional_info),
             "description": "\n".join(description),
             "price": price,
+            "image_url": img_url,
         }
