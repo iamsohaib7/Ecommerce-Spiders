@@ -37,11 +37,11 @@ def save_data_to_file(data):
     need_header = not (
         os.path.exists(scrapped_data) and os.path.getsize(scrapped_data) > 0
     )
+    file_header = ("title", "additional_info", "description", "price", "domain", "url")
+
     with open(scrapped_data, mode="a", newline="", encoding="utf-8") as f:
-        writer = csv.writer(f)
+        writer = csv.DictWriter(f, fieldnames=file_header)
         if need_header:
-            writer.writerow(data[0].keys())
-        for item in data:
-            if not isinstance(item, dict):
-                continue
-            writer.writerow(item.values())
+            writer.writeheader()
+        data = filter(lambda x: isinstance(x, dict), data)
+        writer.writerows(data)

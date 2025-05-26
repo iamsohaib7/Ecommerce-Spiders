@@ -93,6 +93,6 @@ class AlfatahSpider(_StaticPageSpider):
         return {
             "title": title,
             "additional_info": "\n".join(additional_info),
-            "descrption": "\n".join(description),
+            "description": "\n".join(description),
             "price": price,
         }
