@@ -10,32 +10,6 @@ import asyncio
 from parsel import Selector
 
 
-class _DynamicPageSpider(DynamicPageInfiniteScroll, URLParser):
-    def __init__(self, url: str):
-        self.url = url
-        self.domain = self.extract_domain(self.url)
-
-    def __fetch_product_urls_with_scroll(self) -> Optional[str]:
-        content = None
-        with sync_playwright() as p:
-            browser = p.chromium.launch(headless=False, args=["--start-fullscreen"])
-            page = browser.new_page()
-            page.goto(self.url, wait_until="domcontentloaded")
-            self.scroll(page)
-            page.wait_for_timeout(1000)
-            content = page.content()
-            page.close()
-        return self.parse_product_urls(content)
-
-    def parse_product_urls(content: str):
-        raise NotImplementedError("Subclasses must implement parse_products_urls")
-
-    def crawl(self, scroll=True):
-        if scroll:
-            product_urls = self.__fetch_product_urls_with_scroll()
-            print(len(product_urls))
-
-
 class _StaticPageSpider(URLParser):
     def __init__(self, url: str):
         self.url = url
@@ -80,6 +54,32 @@ class _StaticPageSpider(URLParser):
         product_urls = self.__fetch_all_urls()
         parsed_data = asyncio.run(self.__fetch_mutiple(product_urls))
         save_data_to_file(parsed_data)
+
+
+class _DynamicPageSpider(DynamicPageInfiniteScroll, URLParser, _StaticPageSpider):
+    def __init__(self, url: str):
+        self.url = url
+        self.domain = self.extract_domain(self.url)
+
+    def __fetch_product_urls_with_scroll(self) -> Optional[str]:
+        content = None
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=False, args=["--start-fullscreen"])
+            page = browser.new_page()
+            page.goto(self.url, wait_until="domcontentloaded")
+            self.scroll(page)
+            page.wait_for_timeout(1000)
+            content = page.content()
+            page.close()
+        return self.parse_product_urls(content)
+
+    def parse_product_urls(content: str):
+        raise NotImplementedError("Subclasses must implement parse_products_urls")
+
+    def crawl(self, scroll=True):
+        if scroll:
+            product_urls = self.__fetch_product_urls_with_scroll()
+            result = asyncio.run(self.__fetch_mutiple(product_urls))
 
 
 class AlfatahSpider(_StaticPageSpider):
