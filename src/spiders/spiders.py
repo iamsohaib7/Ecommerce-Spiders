@@ -18,8 +18,8 @@ class _DynamicPageSpider(DynamicPageInfiniteScroll, URLParser):
     def __fetch_product_urls_with_scroll(self) -> Optional[str]:
         content = None
         with sync_playwright() as p:
-            browser = p.chromium.launch(headless=False)
-            page = browser.new_page(viewport={"height": 1080, "width": 1920})
+            browser = p.chromium.launch(headless=False, args=["--start-fullscreen"])
+            page = browser.new_page()
             page.goto(self.url, wait_until="domcontentloaded")
             self.scroll(page)
             page.wait_for_timeout(1000)
@@ -33,7 +33,7 @@ class _DynamicPageSpider(DynamicPageInfiniteScroll, URLParser):
     def crawl(self, scroll=True):
         if scroll:
             product_urls = self.__fetch_product_urls_with_scroll()
-            print(product_urls)
+            print(len(product_urls))
 
 
 class _StaticPageSpider(URLParser):

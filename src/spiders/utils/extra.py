@@ -12,13 +12,11 @@ class DynamicPageInfiniteScroll:
 
     @staticmethod
     def scroll(page: Page):
-
-        prev_height = None
+        prev_height = page.evaluate("() => document.body.scrollHeight")
         while True:
-            curr_height = page.evaluate(
-                "window.scrollTo(0, document.body.scrollHeight)"
-            )
+            page.evaluate("() => window.scrollTo(0, document.body.scrollHeight)")
             page.wait_for_timeout(1000)
+            curr_height = page.evaluate("() => document.body.scrollHeight")
             if curr_height == prev_height:
                 break
             prev_height = curr_height
@@ -37,7 +35,15 @@ def save_data_to_file(data):
     need_header = not (
         os.path.exists(scrapped_data) and os.path.getsize(scrapped_data) > 0
     )
-    file_header = ("title", "additional_info", "description", "price", "domain", "url", "image_url")
+    file_header = (
+        "title",
+        "additional_info",
+        "description",
+        "price",
+        "domain",
+        "url",
+        "image_url",
+    )
 
     with open(scrapped_data, mode="a", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=file_header)
