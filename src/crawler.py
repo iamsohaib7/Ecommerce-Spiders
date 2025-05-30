@@ -1,10 +1,10 @@
-from src.spiders.spiders import AlfatahSpider
+from src.spiders.spiders import AlfatahSpider, PhilipsSpider
 from src.spiders.utils.extra import URLParser
 
 
 class Spider(URLParser):
     def __init__(self, url):
-        self.SPIDERS = {"alfatah": AlfatahSpider}
+        self.SPIDERS = {"alfatah": AlfatahSpider, "philipsappliances": PhilipsSpider}
         self.url = url
         self.domain = self.extract_domain(url)
 
