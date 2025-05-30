@@ -20,7 +20,7 @@ class _DynamicPageSpider(DynamicPageInfiniteScroll, URLParser):
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=False)
             page = browser.new_page(viewport={"height": 1080, "width": 1920})
-            page.goto(self.url, wait_until="networkidle")
+            page.goto(self.url, wait_until="domcontentloaded")
             self.scroll(page)
             page.wait_for_timeout(1000)
             content = page.content()
