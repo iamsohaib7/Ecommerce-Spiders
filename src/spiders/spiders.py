@@ -44,7 +44,7 @@ class _StaticPageSpider(URLParser):
         result["url"] = url
         return result
 
-    async def __fetch_mutiple(self, urls: list[str]):
+    async def fetch_mutiple(self, urls: list[str]):
         async with curl_cffi.AsyncSession(max_clients=10, timeout=15) as session:
             tasks = [self.__fetch_and_parse(u, session) for u in urls]
             results = await asyncio.gather(*tasks, return_exceptions=True)
@@ -52,11 +52,11 @@ class _StaticPageSpider(URLParser):
 
     def crawl(self):
         product_urls = self.__fetch_all_urls()
-        parsed_data = asyncio.run(self.__fetch_mutiple(product_urls))
+        parsed_data = asyncio.run(self.fetch_mutiple(product_urls))
         save_data_to_file(parsed_data)
 
 
-class _DynamicPageSpider(DynamicPageInfiniteScroll, URLParser, _StaticPageSpider):
+class _DynamicPageSpider(DynamicPageInfiniteScroll, _StaticPageSpider):
     def __init__(self, url: str):
         self.url = url
         self.domain = self.extract_domain(self.url)
@@ -64,7 +64,7 @@ class _DynamicPageSpider(DynamicPageInfiniteScroll, URLParser, _StaticPageSpider
     def __fetch_product_urls_with_scroll(self) -> Optional[str]:
         content = None
         with sync_playwright() as p:
-            browser = p.chromium.launch(headless=False, args=["--start-fullscreen"])
+            browser = p.chromium.launch(headless=True, args=["--start-fullscreen"])
             page = browser.new_page()
             page.goto(self.url, wait_until="domcontentloaded")
             self.scroll(page)
@@ -76,10 +76,14 @@ class _DynamicPageSpider(DynamicPageInfiniteScroll, URLParser, _StaticPageSpider
     def parse_product_urls(content: str):
         raise NotImplementedError("Subclasses must implement parse_products_urls")
 
+    def parse_details(self, content: str):
+        raise NotImplementedError("Subclasses must implement parse_details")
+
     def crawl(self, scroll=True):
         if scroll:
             product_urls = self.__fetch_product_urls_with_scroll()
-            result = asyncio.run(self.__fetch_mutiple(product_urls))
+            result = asyncio.run(self.fetch_mutiple(product_urls))
+            save_data_to_file(result)
 
 
 class AlfatahSpider(_StaticPageSpider):
@@ -120,3 +124,24 @@ class PhilipsSpider(_DynamicPageSpider):
         selector = Selector(content)
         product_urls = selector.css("a[aria-label='product']::attr(href)").extract()
         return product_urls
+
+    def parse_details(self, content):
+        selector = Selector(text=content)
+        title = selector.css("h2.product_title::text").get()
+        additional_info = list()
+        for tr in selector.css("#tab-additional_information table tr"):
+            additional_info.append(" ".join(map(str.strip, tr.css("::text").getall())))
+        description = selector.css("#tab-description ::text").extract()
+        specs = selector.css("#tab-specs ::text").extract()
+        price = selector.css("div.summary p.price bdi::text").get()
+        image_url = selector.css("div.img-thumbnail img::attr(src)").get()
+        return {
+            "title": title.strip(),
+            "additional_info": "\n".join(additional_info),
+            "description": "\n".join(filter(str.strip, description)),
+            "specs": (
+                "\n".join(map(str.strip, filter(str.strip, specs))) if specs else None
+            ),
+            "price": price,
+            "image_url": image_url,
+        }

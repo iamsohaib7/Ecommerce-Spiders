@@ -39,6 +39,7 @@ def save_data_to_file(data):
         "title",
         "additional_info",
         "description",
+        "specs",
         "price",
         "domain",
         "url",
