@@ -10,15 +10,30 @@ import asyncio
 from parsel import Selector
 
 
-class DynamicPageSpider(DynamicPageInfiniteScroll):
+class _DynamicPageSpider(DynamicPageInfiniteScroll, URLParser):
     def __init__(self, url: str):
         self.url = url
+        self.domain = self.extract_domain(self.url)
 
-    def fetch(self) -> Optional[str]:
-        pass
+    def __fetch_product_urls_with_scroll(self) -> Optional[str]:
+        content = None
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=False)
+            page = browser.new_page(viewport={"height": 1080, "width": 1920})
+            page.goto(self.url, wait_until="networkidle")
+            self.scroll(page)
+            page.wait_for_timeout(1000)
+            content = page.content()
+            page.close()
+        return self.parse_product_urls(content)
 
-    def parse_data(content: str):
-        pass
+    def parse_product_urls(content: str):
+        raise NotImplementedError("Subclasses must implement parse_products_urls")
+
+    def crawl(self, scroll=True):
+        if scroll:
+            product_urls = self.__fetch_product_urls_with_scroll()
+            print(product_urls)
 
 
 class _StaticPageSpider(URLParser):
@@ -98,3 +113,10 @@ class AlfatahSpider(_StaticPageSpider):
             "price": price,
             "image_url": img_url,
         }
+
+
+class PhilipsSpider(_DynamicPageSpider):
+    def parse_product_urls(self, content):
+        selector = Selector(content)
+        product_urls = selector.css("a[aria-label='product']::attr(href)").extract()
+        return product_urls
